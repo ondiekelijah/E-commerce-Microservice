@@ -32,16 +32,16 @@ router.post('/register', async (req, res) => {
 });
 
 router.post('/login', async (req, res) => {
-    const { username, password } = req.body;
+    const { email, password } = req.body;
     // verify if username and password are not empty
-    if (!username || !password) {
+    if (!email || !password) {
         return res.status(400).json({
-            message: 'Please provide username and password'
+            message: 'Please provide email and password'
         });
     }
     // find user by username
     // verify if user exists
-    const user = await User.findOne({ username });
+    const user = await User.findOne({ email });
     if (!user)
         return res
             .status(400)
@@ -55,11 +55,14 @@ router.post('/login', async (req, res) => {
             .status(400)
             .json({ error: true, message: "Invalid password" });
     // create token
-    const token = jwt.sign({ username: user.username }, 'secret', { expiresIn: '1h' });
+    const payload = {
+        email,
+        username: user.username,
+    }
+    const token = jwt.sign(payload, 'secret', { expiresIn: '1h' });
     res.json({
         message: 'User logged in',
         token: token,
-        username: user.username
     });
 });
 

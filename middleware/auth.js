@@ -7,9 +7,13 @@ const auth = (req, res, next) => {
         return res.status(401).json({ msg: 'No token, authorization denied' });
     }
     try {
-        const decoded = jwt.verify(token, 'secret');
-        req.user = decoded.user;
-        next();
+        jwt.verify(token, 'secret', (err, user) => {
+            if (err) {
+                return res.status(401).json({ msg: 'Token is not valid' });
+            }
+            req.user = user;
+            next();
+        });
     } catch (err) {
         res.status(401).json({ msg: 'Token is not valid' });
     }
