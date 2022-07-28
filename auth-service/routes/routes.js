@@ -6,7 +6,7 @@ const jwt = require('jsonwebtoken');
 // const config = require('../config');
 
 
-router.post('/register', (req, res) => {
+router.post('/register', async (req, res) => {
     const { username, password, email } = req.body;
     // verify if username and password are not empty
     if (!username || !password || !email) {
@@ -14,35 +14,20 @@ router.post('/register', (req, res) => {
             message: 'Please provide username, password and email'
         });
     }
-    // verify if username is not taken
-    User.findOne({ username }, (err, user) => {
-        if (user) {
-            return res.status(400).json({
-                message: 'Username is already taken'
-            });
-        }
-    })
-    // verify if email is not taken
-    User.findOne({ email }, (err, user) => {
-        if (user) {
-            return res.status(400).json({
-                message: 'Email is already taken'
-            });
-        }
-    })
-    // hash password
-    bcrypt.hash(password, 10, (err, hash) => {
-        if (err) {
-            return res.status(500).json({
-                message: 'Error hashing password'
-            });
-        }
-    });
-    // create user
-    const user = new User({ username, password, email });
-    user.save()
-        .then(() => res.json({ message: 'User created!' }))
-        .catch(err => res.status(400).json({ error: 'Error: ' + err }));
+    const user = await User.findOne({ username });
+        
+    if (user)
+        return res
+            .status(400)
+            .json({ error: true, message: "User already exists" });
+
+    const salt = await bcrypt.genSalt(Number(10));
+    const hashedPassword = await bcrypt.hash(password, salt);
+    await new User({ ...req.body, password: hashedPassword }).save();
+
+    return res
+        .status(201)
+        .json({ error: false, message: "User created successfully" });
 
 });
 
@@ -55,36 +40,27 @@ router.post('/login', async (req, res) => {
         });
     }
     // find user by username
-    await User.findOne({ username }, (err, user) => {
-        if (err) {
-            return res.status(500).json({
-                message: 'Error finding user'
-            });
-        }
-        if (!user) {
-            return res.status(400).json({
-                message: 'User not found'
-            });
-        }
-        // compare password
-        bcrypt.compare(password, user.password, (err, result) => {
-            if (err) {
-                return res.status(500).json({
-                    message: 'Error verfying password'
-                });
-            }
-            if (!result) {
-                return res.status(400).json({
-                    message: 'Incorrect password'
-                });
-            }
-            // create token
-            const token = jwt.sign({ username: user.username }, 'secret', { expiresIn: '1h' });
-            res.json({
-                message: 'User logged in',
-                token: token,
-                username: user.username
-            });
-        });
+    // verify if user exists
+    const user = await User.findOne({ username });
+    if (!user)
+        return res
+            .status(400)
+            .json({ error: true, message: "User does not exist" });
+    const isValidPassword = await bcrypt.compare(
+        req.body.password,
+        user.password
+    );
+    if (!isValidPassword)
+        return res
+            .status(400)
+            .json({ error: true, message: "Invalid password" });
+    // create token
+    const token = jwt.sign({ username: user.username }, 'secret', { expiresIn: '1h' });
+    res.json({
+        message: 'User logged in',
+        token: token,
+        username: user.username
     });
 });
+
+module.exports = router;
