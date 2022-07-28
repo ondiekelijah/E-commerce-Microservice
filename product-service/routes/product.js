@@ -3,7 +3,8 @@ const router = new Router();
 const Product = require("../models/Product");
 const auth = require("../../middleware/auth");
 const amqp = require("amqplib");
-var channel, connection;
+
+var order, channel, connection;
 
 // RabbitMQ connection
 async function connectToRabbitMQ() {
@@ -34,7 +35,6 @@ router.post("/", auth, async (req, res) => {
 // Buy a product
 router.post("/buy", auth, async (req, res) => {
   const { productIds } = req.body;
-  console.log(req.user);
   // Get products from database with the given ids
   const products = await Product.find({ _id: { $in: productIds } });
 
@@ -48,6 +48,19 @@ router.post("/buy", auth, async (req, res) => {
       })
     )
   );
+
+  // Consume from RabbitMQ
+  channel.consume("product-service-queue", (data) => {
+    console.log("Consumed from product-service-queue");
+    order = JSON.parse(data.content);
+    channel.ack(data);
+  });
+  return res.status(201).json({
+    message: "Order placed successfully",
+    order,
+  });
+
+
 });
 
 module.exports = router;
