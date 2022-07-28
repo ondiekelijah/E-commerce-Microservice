@@ -2,7 +2,7 @@ const express = require('express');
 const app = express();
 const PORT = process.env.PORT || 3000;
 const mongoose = require('mongoose');
-const authRouter = require('./routes/routes');
+const authRouter = require('./routes/auth');
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));

@@ -1,0 +1,23 @@
+{
+  "name": "e-commerce",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Dev-Elie/E-commerce-Microservice.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Dev-Elie/E-commerce-Microservice/issues"
+  },
+  "homepage": "https://github.com/Dev-Elie/E-commerce-Microservice#readme",
+  "dependencies": {
+    "jsonwebtoken": "^8.5.1"
+  }
+}
