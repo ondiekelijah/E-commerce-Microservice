@@ -18,12 +18,15 @@ Install packages for the `Auth middleware`, in the root of the project run:
 
 `npm install`
 
+To run RabbitMQ, execute:
+
+`docker run -p 5672:5672 rabbitmq`
+
+## NOTE: RabbitMQ must be up and running before starting the services.
+
 To run each service, execute:
 
 `npm run dev`
 
-To run RabbitMQ, execute:
-
-`docker run -p 5672:5672 rabbitmq`
 
 Have fun learning about Microservices.
